@@ -98,6 +98,23 @@ class BookingSystemTest {
     }
 
     @Test
+    void shouldThrowExceptionWhenEndTimeIsBeforeStartTime() {
+        String roomId = "room1";
+        LocalDateTime now = LocalDateTime.of(2025, 1, 30, 12, 0);
+        LocalDateTime startTime = now.plusHours(1);
+        LocalDateTime endTime = startTime.minusHours(1);
+
+        when(timeProvider.getCurrentTime()).thenReturn(now);
+
+        Exception exception = assertThrows(IllegalArgumentException.class, () -> {
+            bookingSystem.bookRoom(roomId, startTime, endTime);
+        });
+
+        assertEquals("Sluttid måste vara efter starttid", exception.getMessage());
+    }
+
+
+    @Test
     void getAvailableRoomsReturnsCorrectRooms() {
         LocalDateTime startTime = LocalDateTime.now().plusHours(1);
         LocalDateTime endTime = startTime.plusHours(1);
@@ -140,6 +157,62 @@ class BookingSystemTest {
 
 
     @Test
-    void cancelBooking() {
+    void cancelBookingSuccessfully() throws NotificationException {
+        String bookingId = "booking1";
+        LocalDateTime futureStartTime = LocalDateTime.now().plusHours(1);
+        Booking booking = mock(Booking.class);
+
+        Room room = mock(Room.class);
+        when(room.hasBooking(bookingId)).thenReturn(true);
+        when(room.getBooking(bookingId)).thenReturn(booking);
+        when(booking.getStartTime()).thenReturn(futureStartTime);
+
+        when(roomRepository.findAll()).thenReturn(List.of(room));
+        when(timeProvider.getCurrentTime()).thenReturn(LocalDateTime.now());
+
+        boolean result = bookingSystem.cancelBooking(bookingId);
+
+        assertTrue(result);
+        verify(room).removeBooking(bookingId);
+        verify(roomRepository).save(room);
+        verify(notificationService).sendCancellationConfirmation(booking);
     }
+
+    @Test
+    void cancelBookingFailsForNonExistentBooking() {
+        String bookingId = "nonExistentBooking";
+
+        when(roomRepository.findAll()).thenReturn(List.of());
+
+        boolean result = bookingSystem.cancelBooking(bookingId);
+
+        assertFalse(result);
+    }
+
+    @Test
+    void cancelBookingFailsForNullBooking() {
+        String bookingId = null;
+
+        when(roomRepository.findAll()).thenReturn(List.of());
+
+        assertThrows(IllegalArgumentException.class, () -> bookingSystem.cancelBooking(bookingId));
+    }
+
+    @Test
+    void cancelBookingFailsForStartedBooking() {
+        String bookingId = "booking1";
+        LocalDateTime pastStartTime = LocalDateTime.now().minusHours(1);
+        Booking booking = mock(Booking.class);
+
+        Room room = mock(Room.class);
+        when(room.hasBooking(bookingId)).thenReturn(true);
+        when(room.getBooking(bookingId)).thenReturn(booking);
+        when(booking.getStartTime()).thenReturn(pastStartTime);
+
+        when(roomRepository.findAll()).thenReturn(List.of(room));
+        when(timeProvider.getCurrentTime()).thenReturn(LocalDateTime.now());
+
+        assertThrows(IllegalStateException.class, () -> bookingSystem.cancelBooking(bookingId));
+    }
+
 }
