@@ -4,6 +4,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -97,8 +98,46 @@ class BookingSystemTest {
     }
 
     @Test
-    void getAvailableRooms() {
+    void getAvailableRoomsReturnsCorrectRooms() {
+        LocalDateTime startTime = LocalDateTime.now().plusHours(1);
+        LocalDateTime endTime = startTime.plusHours(1);
+
+        Room room1 = mock(Room.class);
+        Room room2 = mock(Room.class);
+        Room room3 = mock(Room.class);
+
+        when(room1.isAvailable(startTime, endTime)).thenReturn(true);
+        when(room2.isAvailable(startTime, endTime)).thenReturn(false);
+        when(room3.isAvailable(startTime, endTime)).thenReturn(true);
+
+        when(roomRepository.findAll()).thenReturn(List.of(room1, room2, room3));
+
+        List<Room> availableRooms = bookingSystem.getAvailableRooms(startTime, endTime);
+
+        assertEquals(2, availableRooms.size());
+        assertTrue(availableRooms.contains(room1));
+        assertTrue(availableRooms.contains(room3));
+        assertFalse(availableRooms.contains(room2));
     }
+
+    @Test
+    void getAvailableRoomsThrowsExceptionForInvalidArguments() {
+        // Test for null startTime
+        assertThrows(IllegalArgumentException.class, () ->
+                bookingSystem.getAvailableRooms(null, LocalDateTime.now().plusHours(1))
+        );
+
+        // Test for null endTime
+        assertThrows(IllegalArgumentException.class, () ->
+                bookingSystem.getAvailableRooms(LocalDateTime.now(), null)
+        );
+
+        // Test for endTime before startTime
+        assertThrows(IllegalArgumentException.class, () ->
+                bookingSystem.getAvailableRooms(LocalDateTime.now().plusHours(1), LocalDateTime.now())
+        );
+    }
+
 
     @Test
     void cancelBooking() {
