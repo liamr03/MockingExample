@@ -8,6 +8,7 @@ import java.util.List;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
+import static org.assertj.core.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
 class BookingSystemTest {
@@ -39,7 +40,7 @@ class BookingSystemTest {
         boolean result = bookingSystem.bookRoom(roomId, startTime, endTime);
 
 
-        assertTrue(result);
+        assertThat(result).isTrue();
         verify(room).addBooking(any(Booking.class));
         verify(roomRepository).save(room);
         verify(notificationService).sendBookingConfirmation(any(Booking.class));
@@ -58,7 +59,7 @@ class BookingSystemTest {
 
         boolean result = bookingSystem.bookRoom(roomId, startTime, endTime);
 
-        assertFalse(result);
+        assertThat(result).isFalse();
         verify(room, never()).addBooking(any(Booking.class));
         verify(roomRepository, never()).save(any(Room.class));
         verify(notificationService, never()).sendBookingConfirmation(any(Booking.class));
@@ -67,22 +68,19 @@ class BookingSystemTest {
     @Test
     void bookRoomThrowsExceptionForInvalidArguments() {
         // Test for null startTime
-        IllegalArgumentException exception1 = assertThrows(IllegalArgumentException.class, () ->
-                bookingSystem.bookRoom("room1", null, LocalDateTime.now().plusHours(1))
-        );
-        assertEquals("Bokning kräver giltiga start- och sluttider samt rum-id", exception1.getMessage());
+        assertThatThrownBy(() -> bookingSystem.bookRoom("room1", null, LocalDateTime.now().plusHours(1)))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessage("Bokning kräver giltiga start- och sluttider samt rum-id");
 
         // Test for null endTime
-        IllegalArgumentException exception2 = assertThrows(IllegalArgumentException.class, () ->
-                bookingSystem.bookRoom("room1", LocalDateTime.now(), null)
-        );
-        assertEquals("Bokning kräver giltiga start- och sluttider samt rum-id", exception2.getMessage());
+        assertThatThrownBy(() -> bookingSystem.bookRoom("room1", LocalDateTime.now(), null))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessage("Bokning kräver giltiga start- och sluttider samt rum-id");
 
         // Test for null roomId
-        IllegalArgumentException exception3 = assertThrows(IllegalArgumentException.class, () ->
-                bookingSystem.bookRoom(null, LocalDateTime.now(), LocalDateTime.now().plusHours(1))
-        );
-        assertEquals("Bokning kräver giltiga start- och sluttider samt rum-id", exception3.getMessage());
+        assertThatThrownBy(() -> bookingSystem.bookRoom(null, LocalDateTime.now(), LocalDateTime.now().plusHours(1)))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessage("Bokning kräver giltiga start- och sluttider samt rum-id");
     }
 
 
@@ -94,7 +92,8 @@ class BookingSystemTest {
 
         when(timeProvider.getCurrentTime()).thenReturn(LocalDateTime.now());
 
-        assertThrows(IllegalArgumentException.class, () -> bookingSystem.bookRoom(roomId, startTime, endTime));
+        assertThatThrownBy(() -> bookingSystem.bookRoom(roomId, startTime, endTime))
+                .isInstanceOf(IllegalArgumentException.class);
     }
 
     @Test
@@ -106,11 +105,9 @@ class BookingSystemTest {
 
         when(timeProvider.getCurrentTime()).thenReturn(now);
 
-        Exception exception = assertThrows(IllegalArgumentException.class, () -> {
-            bookingSystem.bookRoom(roomId, startTime, endTime);
-        });
-
-        assertEquals("Sluttid måste vara efter starttid", exception.getMessage());
+        assertThatThrownBy(() -> bookingSystem.bookRoom(roomId, startTime, endTime))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessage("Sluttid måste vara efter starttid");
     }
 
 
@@ -131,29 +128,27 @@ class BookingSystemTest {
 
         List<Room> availableRooms = bookingSystem.getAvailableRooms(startTime, endTime);
 
-        assertEquals(2, availableRooms.size());
-        assertTrue(availableRooms.contains(room1));
-        assertTrue(availableRooms.contains(room3));
-        assertFalse(availableRooms.contains(room2));
+        assertThat(availableRooms).hasSize(2);
+        assertThat(availableRooms.contains(room1)).isTrue();
+        assertThat(availableRooms.contains(room3)).isTrue();
+        assertThat(availableRooms.contains(room2)).isFalse();
     }
 
     @Test
     void getAvailableRoomsThrowsExceptionForInvalidArguments() {
         // Test for null startTime
-        assertThrows(IllegalArgumentException.class, () ->
-                bookingSystem.getAvailableRooms(null, LocalDateTime.now().plusHours(1))
-        );
+        assertThatThrownBy(() -> bookingSystem.getAvailableRooms(null, LocalDateTime.now().plusHours(1)))
+                .isInstanceOf(IllegalArgumentException.class);
 
         // Test for null endTime
-        assertThrows(IllegalArgumentException.class, () ->
-                bookingSystem.getAvailableRooms(LocalDateTime.now(), null)
-        );
+        assertThatThrownBy(() -> bookingSystem.getAvailableRooms(LocalDateTime.now(), null))
+                .isInstanceOf(IllegalArgumentException.class);
 
         // Test for endTime before startTime
-        assertThrows(IllegalArgumentException.class, () ->
-                bookingSystem.getAvailableRooms(LocalDateTime.now().plusHours(1), LocalDateTime.now())
-        );
+        assertThatThrownBy(() -> bookingSystem.getAvailableRooms(LocalDateTime.now().plusHours(1), LocalDateTime.now()))
+                .isInstanceOf(IllegalArgumentException.class);
     }
+
 
 
     @Test
@@ -172,7 +167,7 @@ class BookingSystemTest {
 
         boolean result = bookingSystem.cancelBooking(bookingId);
 
-        assertTrue(result);
+        assertThat(result).isTrue();
         verify(room).removeBooking(bookingId);
         verify(roomRepository).save(room);
         verify(notificationService).sendCancellationConfirmation(booking);
@@ -186,16 +181,16 @@ class BookingSystemTest {
 
         boolean result = bookingSystem.cancelBooking(bookingId);
 
-        assertFalse(result);
+        assertThat(result).isFalse();
     }
 
     @Test
     void cancelBookingFailsForNullBooking() {
-        String bookingId = null;
 
         when(roomRepository.findAll()).thenReturn(List.of());
 
-        assertThrows(IllegalArgumentException.class, () -> bookingSystem.cancelBooking(bookingId));
+        assertThatThrownBy(() -> bookingSystem.cancelBooking(null))
+                .isInstanceOf(IllegalArgumentException.class);
     }
 
     @Test
@@ -212,7 +207,9 @@ class BookingSystemTest {
         when(roomRepository.findAll()).thenReturn(List.of(room));
         when(timeProvider.getCurrentTime()).thenReturn(LocalDateTime.now());
 
-        assertThrows(IllegalStateException.class, () -> bookingSystem.cancelBooking(bookingId));
+        assertThatThrownBy(() -> bookingSystem.cancelBooking(bookingId))
+                .isInstanceOf(IllegalStateException.class)
+                .hasMessage("Kan inte avboka påbörjad eller avslutad bokning");
     }
 
 }
