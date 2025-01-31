@@ -11,14 +11,14 @@ public class ShoppingCart {
         items = new HashMap<>();
     }
 
-    public boolean addItem(Item item) {
-        if (item == null){
+    public void addItem(Item item) {
+        if (item == null) {
             throw new IllegalArgumentException("Item cannot be null");
         }
         items.put(item, items.getOrDefault(item, 0) + 1);
     }
 
-    public boolean removeFromCart(Item item) {
+    public void removeItem(Item item) {
         if (item == null) {
             throw new IllegalArgumentException("Item cannot be null");
         }
@@ -31,9 +31,7 @@ public class ShoppingCart {
         } else {
             items.put(item, quantity - 1);
         }
+
+
     }
-
-
-
-
 }
