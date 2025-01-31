@@ -33,7 +33,7 @@ public class ShoppingCart {
         }
     }
 
-    public double calculateTotalPrice() {
+            public double calculateTotalPrice() {
         return items.entrySet().stream()
                 .mapToDouble(e -> e.getKey().getPrice() * e.getValue())
                 .sum();
@@ -52,5 +52,19 @@ public class ShoppingCart {
 
     public int getItemQuantity(Item item) {
         return items.getOrDefault(item, 0);
+    }
+
+    public void updateQuantity(Item item, int quantity) {
+        if (item == null) {
+            throw new IllegalArgumentException("Item cannot be null");
+        }
+        if (quantity < 0) {
+            throw new IllegalArgumentException("Quantity cannot be negative");
+        }
+        if (quantity == 0) {
+            items.remove(item);
+        } else {
+            items.put(item, quantity);
+        }
     }
 }
