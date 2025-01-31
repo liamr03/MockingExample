@@ -1,5 +1,7 @@
 package com.example;
 
+import java.util.Objects;
+
 public class Item {
     private String name;
     private double price;
@@ -31,6 +33,6 @@ public class Item {
 
     @Override
     public int hashCode() {
-        return name.hashCode();
+        return Objects.hash(name, price);
     }
 }
