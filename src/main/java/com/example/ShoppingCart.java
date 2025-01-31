@@ -31,7 +31,26 @@ public class ShoppingCart {
         } else {
             items.put(item, quantity - 1);
         }
+    }
 
+    public double calculateTotalPrice() {
+        return items.entrySet().stream()
+                .mapToDouble(e -> e.getKey().getPrice() * e.getValue())
+                .sum();
+    }
 
+    public void applyDiscount(double discountRate) {
+        items.replaceAll((item, quantity) -> {
+            item.setPrice(item.getPrice() * (1 - discountRate));
+            return quantity;
+        });
+    }
+
+    public Map<Item, Integer> getItems() {
+        return items;
+    }
+
+    public int getItemQuantity(Item item) {
+        return items.getOrDefault(item, 0);
     }
 }
