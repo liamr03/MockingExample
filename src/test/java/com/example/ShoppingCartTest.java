@@ -1,12 +1,17 @@
 package com.example;
 
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+
+import static org.assertj.core.api.AssertionsForClassTypes.assertThatThrownBy;
+import static org.assertj.core.api.AssertionsForInterfaceTypes.assertThat;
 
 public class ShoppingCartTest {
 
     private ShoppingCart cart;
 
+    @BeforeEach
     void setUp() {
         cart = new ShoppingCart();
     }
@@ -17,17 +22,17 @@ public class ShoppingCartTest {
         Item item = new Item("item1", 10.0);
         cart.addItem(item);
 
-        assertThat(cart.getItems()).contains(item);
+        assertThat(cart.getItems()).containsKey(item); // Check if the key is present
     }
 
     @Test
     @DisplayName("Should Remove Item From Cart")
     void shouldRemoveItemFromCart() {
         Item item = new Item("item1", 10.0);
-        cart.addToCart(item);
-        cart.removeFromCart(item);
+        cart.addItem(item);
+        cart.removeItem(item);
 
-        assertThat(cart.getItems()).doesNotContain(item);
+        assertThat(cart.getItems()).doesNotContainKey(item); // Check if the key is removed
     }
 
     @Test
