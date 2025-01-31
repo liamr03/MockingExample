@@ -1,30 +1,36 @@
 package com.example;
 
+import java.util.HashMap;
+import java.util.Map;
+
 public class ShoppingCart {
 
+    private Map<Item, Integer> items;
+
     public ShoppingCart() {
+        items = new HashMap<>();
     }
 
-    public boolean addToCart(String item, int quantity) {
-        if(item.equals("")){
-            System.out.println("You don't have any item");
+    public boolean addItem(Item item) {
+        if (item == null){
+            throw new IllegalArgumentException("Item cannot be null");
         }
-        else if(item == null){
-            System.out.println("Item is null");;
-        }
-
-        return true;
+        items.put(item, items.getOrDefault(item, 0) + 1);
     }
 
-    public boolean removeFromCart(String item, int quantity) {
-        if(item.equals("")){
-            System.out.println("You don't have any item");
+    public boolean removeFromCart(Item item) {
+        if (item == null) {
+            throw new IllegalArgumentException("Item cannot be null");
         }
-        else if(item == null){
-            System.out.println("Item is null");;
+        if (!items.containsKey(item)) {
+            throw new IllegalArgumentException("Item not in cart");
         }
-
-        return true;
+        int quantity = items.get(item);
+        if (quantity == 1) {
+            items.remove(item);
+        } else {
+            items.put(item, quantity - 1);
+        }
     }
 
 
