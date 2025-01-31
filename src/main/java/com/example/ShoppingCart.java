@@ -40,10 +40,7 @@ public class ShoppingCart {
     }
 
     public void applyDiscount(double discountRate) {
-        items.replaceAll((item, quantity) -> {
-            item.setPrice(item.getPrice() * (1 - discountRate));
-            return quantity;
-        });
+        items.keySet().forEach(item -> item.setPrice(item.getPrice() * (1 - discountRate)));
     }
 
     public Map<Item, Integer> getItems() {
