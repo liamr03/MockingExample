@@ -73,11 +73,11 @@ public class ShoppingCartTest {
     void shouldApplyDiscountCorrectly() {
         Item item = new Item("item1", 100.0);
         cart.addItem(item);
-        cart.applyDiscount(0.1); // 10% rabatt
+        cart.applyDiscount(0.1); // 10% discount
 
         double totalPrice = cart.calculateTotalPrice();
 
-        assertThat(totalPrice).isEqualTo(90.0); // Pris efter rabatt
+        assertThat(totalPrice).isEqualTo(90.0); // Price after discount
     }
 
     @Test
